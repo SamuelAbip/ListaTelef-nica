@@ -40,8 +40,8 @@ namespace ListaTelefônica
             {
                 conexao.Open();
                 using (var comando = new SqlCommand(
-                    "select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone" +
-                    $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa where id_pessoa={id};", conexao))
+                    "select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
+                    $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa where tb_pessoas.id_pessoa={id};", conexao))
                 {
                     var reader = comando.ExecuteReader();
                     while (reader.Read())
@@ -58,12 +58,12 @@ namespace ListaTelefônica
         {
             var telefone = new Telefone();
             telefone.Id = reader.GetInt32("id_telefone");
-            telefone.Tipo = (TipoTelefone)reader.GetInt32("tipo_telefone");
+            telefone.Tipo = (TipoTelefone)reader.GetByte("tipo_telefone");
             telefone.Numero = reader.GetString("numero");
 
             var pessoa = new Pessoa();
             pessoa.Id = reader.GetInt32("id_pessoa");
-            pessoa.Nome = reader.GetString("nome_pessoa");
+            pessoa.Nome = reader.GetString("nome");
             pessoa.Telefones = new List<Telefone>();
             pessoa.Telefones.Add(telefone);
             return pessoa;

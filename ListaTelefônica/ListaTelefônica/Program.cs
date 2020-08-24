@@ -17,13 +17,13 @@ namespace ListaTelefônica
         };
 
         private const string CaminhoLista = @"C:\ListaTelefônica\lista.txt";
-        private const string ConnectionString = "server=localhost;uid=root;pwd=s3nhaMySql!;";
+        private const string ConnectionString = "Server=localhost;Database=ListaTelefonica;Trusted_Connection=True;";
 
         static void Main(string[] args)
         {
             IPessoaRepository repositorio = new PessoaRepository(ConnectionString);
             var samuel = repositorio.Obter(1);
-            Console.WriteLine($"{samuel.Nome}: {samuel.Telefones.First()}");
+            Console.WriteLine($"{samuel.Nome}: {samuel.Telefones.First().Numero}");
 
             return;
             string[] teste = new string[] {"a", "b", "c", "d", "e"};
