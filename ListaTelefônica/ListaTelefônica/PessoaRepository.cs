@@ -54,6 +54,31 @@ namespace ListaTelefônica
             throw new Exception("ID não encontrado");
         }
 
+        public Pessoa Obter(string nome)
+        {
+            using (var conexao = new SqlConnection(ConnectionString))
+            {
+                conexao.Open();
+                using (var comando = new SqlCommand(
+                    "select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
+                    $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa where tb_pessoas.nome={nome};", conexao))
+                {
+                    var reader = comando.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        return ObterPessoa(reader);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public void AtualizarTelefone(Pessoa pessoa)
+        {
+            throw new NotImplementedException();
+        }
+
         private Pessoa ObterPessoa(SqlDataReader reader)
         {
             var telefone = new Telefone();
@@ -105,6 +130,11 @@ namespace ListaTelefônica
                     }
                 }
             }
+        }
+
+        public void Remover(int id)
+        {
+            throw new NotImplementedException();
         }
 
         private string ObterComandoCriarPessoa(Pessoa pessoa)

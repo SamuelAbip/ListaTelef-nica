@@ -102,7 +102,6 @@ namespace ListaTelefônica
             {
                 listagemNomes.Add($"{itemNaLista.Key}{Separador} {itemNaLista.Value}");
             }
-
             string listaEmString = string.Join("\n", listagemNomes);
             return listaEmString;
         }

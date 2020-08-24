@@ -12,30 +12,20 @@ namespace ListaTelefônica
             "1 - Adicionar pessoa.",
             "2 - Alterar número.",
             "3 - Remover pessoa.",
-            "4 - Imprimir lista telefônica.",
-            "5 - Salvar lista telefônica."
+            "4 - Imprimir lista telefônica."
         };
 
-        private const string CaminhoLista = @"C:\ListaTelefônica\lista.txt";
         private const string ConnectionString = "Server=localhost;Database=ListaTelefonica;Trusted_Connection=True;";
 
         static void Main(string[] args)
         {
             IPessoaRepository repositorio = new PessoaRepository(ConnectionString);
-            var samuel = repositorio.Obter(1);
-            Console.WriteLine($"{samuel.Nome}: {samuel.Telefones.First().Numero}");
-
-            return;
-            string[] teste = new string[] {"a", "b", "c", "d", "e"};
-            int i = Array.IndexOf(teste, "a");
-            string newteste = teste[i+2];
-            var coleção = new ListaTelefonica(CaminhoLista);
             Console.WriteLine("Bem-vindo ao construtor de lista telefônica. Escolha uma das opções:");
             while (true)
             {
                 ImprmirOpções();
                 var opção = LerOpção();
-                RealizarAção(opção, coleção);
+                RealizarAção(opção, repositorio);
                 if (opção == ListaOpções.Sair)
                 {
                     Console.WriteLine("Saindo do programa.");
@@ -65,26 +55,23 @@ namespace ListaTelefônica
             else return opçãoEscolhida;
         }
 
-        private static void RealizarAção(ListaOpções opção, ListaTelefonica lista)
+        private static void RealizarAção(ListaOpções opção, IPessoaRepository repositorio)
         {
             switch (opção)
             {
                 case ListaOpções.Sair:
                     break;
                 case ListaOpções.AdicionarPessoa:
-                    AdicionarPessoas(lista);
+                    AdicionarPessoas(repositorio);
                     break;
                 case ListaOpções.AlterarNúmero:
-                    AlterarNúmero(lista);
+                    AlterarNúmero(repositorio);
                     break;
                 case ListaOpções.RemoverPessoa:
-                    RemoverPessoa(lista);
+                    RemoverPessoa(repositorio);
                     break;
                 case ListaOpções.ImprimirLista:
-                    ImprimirLista(lista);
-                    break;
-                case ListaOpções.Salvar:
-                    SalvarLista(lista);
+                    ImprimirLista(repositorio);
                     break;
                 case ListaOpções.Inválida:
                     break;
@@ -93,48 +80,57 @@ namespace ListaTelefônica
             }
         }
 
-        private static void AdicionarPessoas(ListaTelefonica lista)
+        private static void AdicionarPessoas(IPessoaRepository repositorio)
         {
             Console.WriteLine("Você optou por adicionar uma nova pessoa. Digite o nome dela:");
             var armazenadorNome = Console.ReadLine();
             Console.WriteLine("Digite o telefone com DDD, apenas com números:");
             var armazenadorTelefone = Console.ReadLine();
-            bool nomeJáExiste = lista.ContémNome(armazenadorNome);
+            bool nomeJáExiste = repositorio.Obter(armazenadorNome) != null;
             if (nomeJáExiste)
             {
                 Console.WriteLine("Esta pessoa já consta na lista.");
             }
             else
             {
-                bool foiInserida = lista.AdicionarPessoa(armazenadorNome, armazenadorTelefone);
-                if (!foiInserida)
+                try
+                {
+                    var telefone = new Telefone();
+                    telefone.Numero = armazenadorTelefone;
+                    telefone.Tipo = armazenadorTelefone[2] == 9 ? TipoTelefone.Celular : TipoTelefone.Casa;
+                    var pessoa= new Pessoa();
+                    pessoa.Nome = armazenadorNome;
+                    pessoa.Telefones = new List<Telefone>();
+                    pessoa.Telefones.Add(telefone);
+                    repositorio.Adicionar(pessoa);
+                    Console.WriteLine("Pessoa adicionada com sucesso.");
+                }
+                catch (Exception)
                 {
                     Console.WriteLine("O telefone digitado é inválido.");
-                }
-                else
-                {
-                    Console.WriteLine("Pessoa adicionada com sucesso.");
                 }
             }
             
             
         }
 
-        private static void AlterarNúmero(ListaTelefonica lista)
+        private static void AlterarNúmero(IPessoaRepository repositorio)
         {
             Console.WriteLine("Você optou por alterar o telefone de uma pessoa já registrada. Digite a pessoa desejada:");
             var pessoaAlterada = Console.ReadLine();
             Console.WriteLine("Digite o novo telefone:");
             var telefoneAtualizado = Console.ReadLine();
-            bool pessoaExiste = lista.ContémNome(pessoaAlterada);
+            var pessoa = repositorio.Obter(pessoaAlterada);
+            bool pessoaExiste = pessoa != null;
             if (pessoaExiste)
             {
-                bool foiAtualizado = lista.AlterarNúmero(pessoaAlterada, telefoneAtualizado);
-                if (foiAtualizado)
+                try
                 {
+                    pessoa.Telefones[0].Numero = telefoneAtualizado;
+                    repositorio.AtualizarTelefone(pessoa);
                     Console.WriteLine("O telefone foi atualizado com sucesso.");
                 }
-                else
+                catch (Exception)
                 {
                     Console.WriteLine("O telefone é inválido.");
                 }
@@ -145,37 +141,44 @@ namespace ListaTelefônica
             }
         }
 
-        private static void RemoverPessoa(ListaTelefonica lista)
+        private static void RemoverPessoa(IPessoaRepository repositorio)
         {
             var nomePessoa = Console.ReadLine();
-            bool foiRemovida = lista.RemoverPessoa(nomePessoa);
-            if (foiRemovida)
-            {
-                Console.WriteLine("Pessoa removida com sucesso.");
-            }
-            else
+            var pessoa = repositorio.Obter(nomePessoa);
+            if (pessoa == null)
             {
                 Console.WriteLine("O nome digitado não existe na lista.");
             }
+            else
+            {
+                repositorio.Remover(pessoa.Id);
+                Console.WriteLine("Pessoa removida com sucesso.");
+            }
         }
 
-        private static void ImprimirLista(ListaTelefonica lista)
+        private static void ImprimirLista(IPessoaRepository repositorio)
         {
-            if (lista.EstáVazia())
+            var lista = repositorio.Listar();
+            if (lista.Count == 0)
             {
                 Console.WriteLine("Sua lista está vazia no momento.");
             }
             else
             {
                 Console.WriteLine("Sua lista atual contém as seguintes pessoas e telefones:");
-                Console.WriteLine(lista.FormaImpressa());
+                Console.WriteLine(FormaImpressa(lista));
             }
         }
 
-        private static void SalvarLista(ListaTelefonica lista)
+        public static string FormaImpressa(List<Pessoa> lista)
         {
-            lista.Salvar(CaminhoLista);
-            Console.WriteLine("Sua lista telêfônica foi salva com sucesso!"); ;
+            var listagemNomes = new List<string>();
+            foreach (var itemNaLista in lista)
+            {
+                listagemNomes.Add($"{itemNaLista.Nome}: {itemNaLista.Telefones.First().Numero}");
+            }
+            string listaEmString = string.Join("\n", listagemNomes);
+            return listaEmString;
         }
     }
 }

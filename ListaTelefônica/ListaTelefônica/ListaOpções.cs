@@ -11,7 +11,6 @@ namespace ListaTelefônica
         AlterarNúmero = 2,
         RemoverPessoa = 3,
         ImprimirLista = 4,
-        Salvar = 5,
         Inválida = 99
     }
 }
