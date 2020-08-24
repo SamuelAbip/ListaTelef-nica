@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ListaTelefônica
 {
@@ -16,9 +17,18 @@ namespace ListaTelefônica
         };
 
         private const string CaminhoLista = @"C:\ListaTelefônica\lista.txt";
+        private const string ConnectionString = "server=localhost;uid=root;pwd=s3nhaMySql!;";
 
         static void Main(string[] args)
         {
+            IPessoaRepository repositorio = new PessoaRepository(ConnectionString);
+            var samuel = repositorio.Obter(1);
+            Console.WriteLine($"{samuel.Nome}: {samuel.Telefones.First()}");
+
+            return;
+            string[] teste = new string[] {"a", "b", "c", "d", "e"};
+            int i = Array.IndexOf(teste, "a");
+            string newteste = teste[i+2];
             var coleção = new ListaTelefonica(CaminhoLista);
             Console.WriteLine("Bem-vindo ao construtor de lista telefônica. Escolha uma das opções:");
             while (true)

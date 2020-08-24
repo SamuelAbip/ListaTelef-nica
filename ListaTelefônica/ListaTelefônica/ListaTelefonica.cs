@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ListaTelefônica
 {
-    class ListaTelefonica
+    public class ListaTelefonica
     {
         private const string Separador = ":";
 
