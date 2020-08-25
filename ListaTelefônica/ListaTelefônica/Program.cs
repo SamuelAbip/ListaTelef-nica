@@ -143,6 +143,7 @@ namespace ListaTelefônica
 
         private static void RemoverPessoa(IPessoaRepository repositorio)
         {
+            Console.WriteLine("Digite o nome da pessoa à ser removida:");
             var nomePessoa = Console.ReadLine();
             var pessoa = repositorio.Obter(nomePessoa);
             if (pessoa == null)

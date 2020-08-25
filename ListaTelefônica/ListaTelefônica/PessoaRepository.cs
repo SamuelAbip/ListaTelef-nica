@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 namespace ListaTelefônica
 {
@@ -20,7 +21,7 @@ namespace ListaTelefônica
             using (var conexao = new SqlConnection(ConnectionString))
             {
                 conexao.Open();
-                using (var comando = new SqlCommand("select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone" +
+                using (var comando = new SqlCommand("select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
                     $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa;", conexao))
                 {
                     var reader = comando.ExecuteReader();
@@ -61,7 +62,7 @@ namespace ListaTelefônica
                 conexao.Open();
                 using (var comando = new SqlCommand(
                     "select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
-                    $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa where tb_pessoas.nome={nome};", conexao))
+                    $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa where tb_pessoas.nome='{nome}';", conexao))
                 {
                     var reader = comando.ExecuteReader();
                     while (reader.Read())
@@ -76,7 +77,12 @@ namespace ListaTelefônica
 
         public void AtualizarTelefone(Pessoa pessoa)
         {
-            throw new NotImplementedException();
+            var telefone = pessoa.Telefones.First();
+            using var conexao = new SqlConnection(ConnectionString);
+            conexao.Open();
+            using var comando = new SqlCommand(
+                $"update tb_telefones set tipo_telefone = {(int)telefone.Tipo}, numero = {telefone.Numero} where id_pessoa = {pessoa.Id}; ", conexao);
+            comando.ExecuteNonQuery();
         }
 
         private Pessoa ObterPessoa(SqlDataReader reader)
@@ -134,12 +140,15 @@ namespace ListaTelefônica
 
         public void Remover(int id)
         {
-            throw new NotImplementedException();
+            using var conexao = new SqlConnection(ConnectionString);
+            conexao.Open();
+            using var comando = new SqlCommand($"delete from tb_telefones where id_pessoa = {id}; delete from tb_pessoas where id_pessoa = {id}; ", conexao);
+            comando.ExecuteNonQuery();
         }
 
         private string ObterComandoCriarPessoa(Pessoa pessoa)
         {
-            return $"insert into tb_pessoas (nome) ({pessoa.Nome});";
+            return $"insert into tb_pessoas (nome) values ('{pessoa.Nome}');";
         }
 
         private string ObterComandoCriarTelefones(int ultimoIdPessoa, List<Telefone> pessoaTelefones)
