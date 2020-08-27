@@ -1,2 +1,2 @@
-# ListaTelef-nica
-Uma lista telefônica para praticar coleções e orientação à objetos.
+# ListaTelefônica
+Uma lista telefônica para praticar coleções e orientação à objetos. Essa aplicação foi feita com a intenção de aprender e praticar conceitos de C# - como Enum, interfaces, classes, métodos e heranças -, e, posteriormente, a integração com um banco de dados. O programa funciona com tabelas onde é possível adicionar pessoas e telefones, alterar e remover o conteúdo, imprimir a lista em console e exportar para Excel. Apesar de não ser o objetivo primário, para rodar o programa basta utilizar o comando dotnet run.
