@@ -32,6 +32,7 @@ namespace ListaTelefônica
 
         private void SalvarExcel(DataTable tabela, string localArquivo)
         {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using var package = new ExcelPackage();
             var worksheet = package.Workbook.Worksheets.Add("Lista Telefônica");
             worksheet.Cells[1, 1].Value = "Nome";

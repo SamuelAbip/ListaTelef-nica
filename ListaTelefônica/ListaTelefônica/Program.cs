@@ -181,7 +181,7 @@ namespace ListaTelefônica
             var lista = repositorio.Listar();
             var exportador = new ExportadorListaTelefonica();
             exportador.ExportarLista(lista, localArquivo);
-            
+            Console.WriteLine("Lista exportada com sucesso!");
         }
 
         public static string FormaImpressa(List<Pessoa> lista)
