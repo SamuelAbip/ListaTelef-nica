@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace ListaTelefônica
@@ -12,7 +13,8 @@ namespace ListaTelefônica
             "1 - Adicionar pessoa.",
             "2 - Alterar número.",
             "3 - Remover pessoa.",
-            "4 - Imprimir lista telefônica."
+            "4 - Imprimir lista telefônica.",
+            "5 - Exportar lista para Excel."
         };
 
         private const string ConnectionString = "Server=localhost;Database=ListaTelefonica;Trusted_Connection=True;";
@@ -52,7 +54,7 @@ namespace ListaTelefônica
                 Console.WriteLine("A opção digitada é inválida. Escolha entre as opções abaixo:");
                 return ListaOpções.Inválida;
             }
-            else return opçãoEscolhida;
+            return opçãoEscolhida;
         }
 
         private static void RealizarAção(ListaOpções opção, IPessoaRepository repositorio)
@@ -73,9 +75,10 @@ namespace ListaTelefônica
                 case ListaOpções.ImprimirLista:
                     ImprimirLista(repositorio);
                     break;
-                case ListaOpções.Inválida:
+                case ListaOpções.ExportarLista:
+                    ExportarLista(repositorio);
                     break;
-                default:
+                case ListaOpções.Inválida:
                     break;
             }
         }
@@ -169,6 +172,16 @@ namespace ListaTelefônica
                 Console.WriteLine("Sua lista atual contém as seguintes pessoas e telefones:");
                 Console.WriteLine(FormaImpressa(lista));
             }
+        }
+
+        private static void ExportarLista(IPessoaRepository repositorio)
+        {
+            Console.WriteLine("Você optou por exportar a lista telefônica para o Excel. Por favor, digite o local onde o arquivo será salvo:");
+            var localArquivo = Console.ReadLine();
+            var lista = repositorio.Listar();
+            var exportador = new ExportadorListaTelefonica();
+            exportador.ExportarLista(lista, localArquivo);
+            
         }
 
         public static string FormaImpressa(List<Pessoa> lista)
