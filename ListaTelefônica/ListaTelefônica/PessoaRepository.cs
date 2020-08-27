@@ -18,38 +18,31 @@ namespace ListaTelefônica
         public List<Pessoa> Listar()
         {
             List<Pessoa> pessoas = new List<Pessoa>();
-            using (var conexao = new SqlConnection(ConnectionString))
+            using var conexao = new SqlConnection(ConnectionString);
+            conexao.Open();
+            using var comando = new SqlCommand("select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
+                                               $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa;", conexao);
+            var reader = comando.ExecuteReader();
+            while (reader.Read())
             {
-                conexao.Open();
-                using (var comando = new SqlCommand("select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
-                    $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa;", conexao))
-                {
-                    var reader = comando.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        var pessoa = ObterPessoa(reader);
-                        pessoas.Add(pessoa);
-                    }
-                }
+                var pessoa = ObterPessoa(reader);
+                pessoas.Add(pessoa);
             }
+
             return pessoas;
         }
 
         public Pessoa Obter(int id)
         {
-            using (var conexao = new SqlConnection(ConnectionString))
+            using var conexao = new SqlConnection(ConnectionString);
+            conexao.Open();
+            using var comando = new SqlCommand(
+                "select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
+                $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa where tb_pessoas.id_pessoa={id};", conexao);
+            var reader = comando.ExecuteReader();
+            while (reader.Read())
             {
-                conexao.Open();
-                using (var comando = new SqlCommand(
-                    "select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
-                    $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa where tb_pessoas.id_pessoa={id};", conexao))
-                {
-                    var reader = comando.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        return ObterPessoa(reader);
-                    }
-                }
+                return ObterPessoa(reader);
             }
 
             throw new Exception("ID não encontrado");
@@ -57,19 +50,15 @@ namespace ListaTelefônica
 
         public Pessoa Obter(string nome)
         {
-            using (var conexao = new SqlConnection(ConnectionString))
+            using var conexao = new SqlConnection(ConnectionString);
+            conexao.Open();
+            using var comando = new SqlCommand(
+                "select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
+                $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa where tb_pessoas.nome='{nome}';", conexao);
+            var reader = comando.ExecuteReader();
+            while (reader.Read())
             {
-                conexao.Open();
-                using (var comando = new SqlCommand(
-                    "select tb_pessoas.id_pessoa, nome, id_telefone, numero, tipo_telefone " +
-                    $"from tb_pessoas join tb_telefones on tb_pessoas.id_pessoa = tb_telefones.id_pessoa where tb_pessoas.nome='{nome}';", conexao))
-                {
-                    var reader = comando.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        return ObterPessoa(reader);
-                    }
-                }
+                return ObterPessoa(reader);
             }
 
             return null;
@@ -106,35 +95,32 @@ namespace ListaTelefônica
             {
                 throw new Exception("Já existe essa pessoa no banco");
             }
-            using (var conexao = new SqlConnection(ConnectionString))
+
+            using var conexao = new SqlConnection(ConnectionString);
+            conexao.Open();
+            using var transacao = conexao.BeginTransaction();
+            try
             {
-                conexao.Open();
-                using (var transacao = conexao.BeginTransaction())
+                int ultimoIdPessoa = 0;
+                using (var comandoCriarPessoa = new SqlCommand(ObterComandoCriarPessoa(pessoa), conexao, transacao))
                 {
-                    try
-                    {
-                        int ultimoIdPessoa = 0;
-                        using (var comandoCriarPessoa = new SqlCommand(ObterComandoCriarPessoa(pessoa), conexao, transacao))
-                        {
-                            comandoCriarPessoa.ExecuteNonQuery();
-                        }
-                        using (var comandoUltimoId = new SqlCommand("select max(id_pessoa) from tb_pessoas", conexao, transacao))
-                        {
-                            ultimoIdPessoa = (int)comandoUltimoId.ExecuteScalar();
-                        }
-                        using (var comandoCriarTelefone = new SqlCommand(ObterComandoCriarTelefones(ultimoIdPessoa, pessoa.Telefones), conexao, transacao))
-                        {
-                            comandoCriarTelefone.ExecuteNonQuery();
-                        }
-                        pessoa.Id = ultimoIdPessoa;
-                        transacao.Commit();
-                    }
-                    catch (Exception)
-                    {
-                        transacao.Rollback();
-                        throw;
-                    }
+                    comandoCriarPessoa.ExecuteNonQuery();
                 }
+                using (var comandoUltimoId = new SqlCommand("select max(id_pessoa) from tb_pessoas", conexao, transacao))
+                {
+                    ultimoIdPessoa = (int)comandoUltimoId.ExecuteScalar();
+                }
+                using (var comandoCriarTelefone = new SqlCommand(ObterComandoCriarTelefones(ultimoIdPessoa, pessoa.Telefones), conexao, transacao))
+                {
+                    comandoCriarTelefone.ExecuteNonQuery();
+                }
+                pessoa.Id = ultimoIdPessoa;
+                transacao.Commit();
+            }
+            catch (Exception)
+            {
+                transacao.Rollback();
+                throw;
             }
         }
 
@@ -142,8 +128,18 @@ namespace ListaTelefônica
         {
             using var conexao = new SqlConnection(ConnectionString);
             conexao.Open();
-            using var comando = new SqlCommand($"delete from tb_telefones where id_pessoa = {id}; delete from tb_pessoas where id_pessoa = {id}; ", conexao);
-            comando.ExecuteNonQuery();
+            using var transacao = conexao.BeginTransaction();
+            try
+            {
+                using var comando = new SqlCommand($"delete from tb_telefones where id_pessoa = {id}; delete from tb_pessoas where id_pessoa = {id}; ", conexao);
+                comando.ExecuteNonQuery();
+            }
+            catch (Exception)
+            {
+
+                transacao.Rollback();
+                throw;
+            }
         }
 
         private string ObterComandoCriarPessoa(Pessoa pessoa)
