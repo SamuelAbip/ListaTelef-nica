@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Channels;
 
 namespace ListaTelefônica
 {
@@ -21,7 +23,8 @@ namespace ListaTelefônica
 
         static void Main(string[] args)
         {
-            IPessoaRepository repositorio = new PessoaRepository(ConnectionString);
+            var context = new ListaTelefonicaContext(ConnectionString);
+            IPessoaRepository repositorio = new PessoaRepositoryEntity(context);
             Console.WriteLine("Bem-vindo ao construtor de lista telefônica. Escolha uma das opções:");
             while (true)
             {
@@ -101,7 +104,7 @@ namespace ListaTelefônica
                     var telefone = new Telefone();
                     telefone.Numero = armazenadorTelefone;
                     telefone.Tipo = armazenadorTelefone[2] == 9 ? TipoTelefone.Celular : TipoTelefone.Casa;
-                    var pessoa= new Pessoa();
+                    var pessoa = new Pessoa();
                     pessoa.Nome = armazenadorNome;
                     pessoa.Telefones = new List<Telefone>();
                     pessoa.Telefones.Add(telefone);
@@ -113,8 +116,8 @@ namespace ListaTelefônica
                     Console.WriteLine("O telefone digitado é inválido.");
                 }
             }
-            
-            
+
+
         }
 
         private static void AlterarNúmero(IPessoaRepository repositorio)
@@ -130,7 +133,7 @@ namespace ListaTelefônica
                 try
                 {
                     pessoa.Telefones[0].Numero = telefoneAtualizado;
-                    repositorio.AtualizarTelefone(pessoa);
+                    repositorio.Atualizar(pessoa);
                     Console.WriteLine("O telefone foi atualizado com sucesso.");
                 }
                 catch (Exception)
@@ -146,7 +149,7 @@ namespace ListaTelefônica
 
         private static void RemoverPessoa(IPessoaRepository repositorio)
         {
-            Console.WriteLine("Digite o nome da pessoa à ser removida:");
+            Console.WriteLine("Digite o nome da pessoa a ser removida:");
             var nomePessoa = Console.ReadLine();
             var pessoa = repositorio.Obter(nomePessoa);
             if (pessoa == null)
@@ -155,7 +158,7 @@ namespace ListaTelefônica
             }
             else
             {
-                repositorio.Remover(pessoa.Id);
+                repositorio.Remover(pessoa);
                 Console.WriteLine("Pessoa removida com sucesso.");
             }
         }
@@ -169,8 +172,8 @@ namespace ListaTelefônica
             }
             else
             {
-                Console.WriteLine("Sua lista atual contém as seguintes pessoas e telefones:");
-                Console.WriteLine(FormaImpressa(lista));
+                Console.WriteLine("\nSua lista atual contém as seguintes pessoas e telefones:");
+                Console.WriteLine(FormaImpressa(lista) + "\n");
             }
         }
 
