@@ -89,10 +89,10 @@ namespace ListaTelefônica
         private static void AdicionarPessoas(IPessoaRepository repositorio)
         {
             Console.WriteLine("Você optou por adicionar uma nova pessoa. Digite o nome dela:");
-            var armazenadorNome = Console.ReadLine();
+            var nome = Console.ReadLine();
             Console.WriteLine("Digite o telefone com DDD, apenas com números:");
-            var armazenadorTelefone = Console.ReadLine();
-            bool nomeJáExiste = repositorio.Obter(armazenadorNome) != null;
+            var telefone = Console.ReadLine();
+            bool nomeJáExiste = repositorio.Obter(nome) != null;
             if (nomeJáExiste)
             {
                 Console.WriteLine("Esta pessoa já consta na lista.");
@@ -101,13 +101,7 @@ namespace ListaTelefônica
             {
                 try
                 {
-                    var telefone = new Telefone();
-                    telefone.Numero = armazenadorTelefone;
-                    telefone.Tipo = armazenadorTelefone[2] == 9 ? TipoTelefone.Celular : TipoTelefone.Casa;
-                    var pessoa = new Pessoa();
-                    pessoa.Nome = armazenadorNome;
-                    pessoa.Telefones = new List<Telefone>();
-                    pessoa.Telefones.Add(telefone);
+                    var pessoa = new Pessoa(nome, telefone);
                     repositorio.Adicionar(pessoa);
                     Console.WriteLine("Pessoa adicionada com sucesso.");
                 }
@@ -116,8 +110,6 @@ namespace ListaTelefônica
                     Console.WriteLine("O telefone digitado é inválido.");
                 }
             }
-
-
         }
 
         private static void AlterarNúmero(IPessoaRepository repositorio)
