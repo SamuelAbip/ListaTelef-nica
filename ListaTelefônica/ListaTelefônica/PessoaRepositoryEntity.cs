@@ -1,8 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using System;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Channels;
 
 namespace ListaTelefônica
 {
